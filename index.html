@@ -16,12 +16,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAzgusF55G7vQ0VnVgiNYNBE-lwvA6cf4Q",
-  authDomain: "soluciones-radiologicas.firebaseapp.com",
-  projectId: "soluciones-radiologicas",
-  storageBucket: "soluciones-radiologicas.firebasestorage.app",
-  messagingSenderId: "569598720890",
-  appId: "1:569598720890:web:c128169d7b991084f9b4c3"
+  apiKey: "AIzaSyDqWq4scCFZleGAH8u5u-WJBBQVS_JoMrY",
+  authDomain: "registro-procedimientos.firebaseapp.com",
+  projectId: "registro-procedimientos",
+  storageBucket: "registro-procedimientos.firebasestorage.app",
+  messagingSenderId: "264620590156",
+  appId: "1:264620590156:web:2611065e4d877ab724a0e9"
 };
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
@@ -367,7 +367,7 @@ document.dispatchEvent(new Event("firebaseReady"));
     <!-- CONFIGURACIÓN -->
     <div id="tab-config" class="tab-pane">
       <div class="page-header"><div><div class="page-title">Configuración del Sistema</div><div class="page-subtitle">Ajustes de numeración y parámetros</div></div></div>
-      
+
       <div class="config-box">
         <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:8px">Último Número General Asignado</div>
         <div class="config-value" id="cfgLastGeneral">—</div>
@@ -403,42 +403,42 @@ document.dispatchEvent(new Event("firebaseReady"));
     </div>
     <div class="modal-body">
       <div id="surgeryAlert" class="alert alert-error"></div>
-      
+
       <div class="form-row">
         <div class="field-group"><label>Fecha *</label><input type="date" id="sFecha"/></div>
         <div class="field-group"><label>N° General (auto)</label><input type="text" id="sNumGeneral" readonly style="background:var(--bg3);color:var(--text3)"/></div>
       </div>
-      
+
       <div class="form-row">
         <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="sPaciente" placeholder="Apellido, Nombre"/></div>
         <div class="field-group"><label>DNI *</label><input type="text" id="sDni" placeholder="Número de DNI"/></div>
       </div>
-      
+
       <div class="form-row four">
         <div class="field-group"><label>Edad *</label><input type="number" id="sEdad" placeholder="Años"/></div>
         <div class="field-group"><label>Especialidad *</label><select id="sEspecialidad"><option value="">— Seleccionar —</option></select></div>
         <div class="field-group"><label>Cirugía *</label><input type="text" id="sCirugia" placeholder="Tipo de cirugía"/></div>
         <div class="field-group"><label>Sala *</label><select id="sSala"><option value="">— Seleccionar —</option></select></div>
       </div>
-      
+
       <div class="form-row">
         <div class="field-group"><label>Médico *</label><input type="text" id="sMedico" placeholder="Nombre del médico cirujano"/></div>
         <div class="field-group"><label>Tecnólogo Médico *</label><select id="sTecnologo"><option value="">— Seleccionar —</option></select></div>
       </div>
-      
+
       <div class="form-row four">
         <div class="field-group"><label>Dosis (mGy) *</label><input type="number" step="any" id="sDosis" placeholder="Ej: 12.5"/></div>
         <div class="field-group"><label>DAP (Gy·cm²) *</label><input type="number" step="any" id="sDap" placeholder="Ej: 45.2"/></div>
         <div class="field-group"><label>Tiempo Radiación (hh:mm:ss) *</label><input type="time" step="1" id="sTiempoRad"/></div>
         <div class="field-group"><label>Equipo *</label><select id="sEquipo"><option value="">— Seleccionar —</option></select></div>
       </div>
-      
+
       <div class="form-row three">
         <div class="field-group"><label>Hora Inicio *</label><input type="time" id="sHoraIni"/></div>
         <div class="field-group"><label>Hora Final *</label><input type="time" id="sHoraFin"/></div>
         <div class="field-group" style="display:flex;align-items:flex-end"><span style="font-size:12px;color:var(--text3);padding-bottom:12px">Todos los campos son obligatorios</span></div>
       </div>
-      
+
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="closeSurgeryModal()">Cancelar</button>
         <button class="btn btn-primary" id="saveSurgeryBtn" onclick="saveSurgery()" style="min-width:130px">Guardar</button>
@@ -516,7 +516,6 @@ document.addEventListener("firebaseReady",async()=>{
   try{
     await ensureAdminExists();
     await ensureConfigExists();
-    // Precargar salas por defecto si no existen
     await ensureDefaultSalas();
   }catch(e){console.warn(e);}
   showScreen('loginScreen');
@@ -545,7 +544,6 @@ async function ensureDefaultSalas(){
   }
 }
 
-// ── NAV ──
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -555,26 +553,24 @@ function showApp(){
   showScreen('appScreen');
   const isAdmin=currentUser && currentUser.rol==='admin';
   console.log('Rol actual:', currentUser?.rol, 'isAdmin:', isAdmin);
-  
+
   document.querySelectorAll('.admin-only').forEach(el=>{
     el.style.display=isAdmin?'':'none';
   });
-  
+
   document.getElementById('topbarUserDni').textContent=currentUser.dni;
   const rb=document.getElementById('topbarRole');
   rb.textContent=isAdmin?'Admin':'Usuario';
   rb.className='role-badge'+(isAdmin?'':' user');
-  
+
   loadAll();
 }
 function switchTab(name,el){
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
 }
 
-// ── AUTH ──
 async function doLogin(){
   const dni=document.getElementById('loginDni').value.trim();
   const pass=document.getElementById('loginPass').value;
@@ -595,7 +591,6 @@ async function doLogin(){
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 function doLogout(){currentUser=null;_allSurgeries=[];_allUsers=[];showLogin();}
 
-// ── LOAD ──
 async function loadAll(){await Promise.all([loadConfig(),loadSurgeries(),loadUsers(),loadCatalogs()]);}
 
 async function loadConfig(){
@@ -656,11 +651,10 @@ function populateSelects(){
 function fillSelect(id,arr,ph){
   const sel=document.getElementById(id);if(!sel)return;
   const cur=sel.value;
-  sel.innerHTML=`<option value="">${ph}</option>`+arr.map(i=>`<option value="${esc(i.nombre)}">${esc(i.nombre)}</option>`).join('');
+  sel.innerHTML='<option value="">'+ph+'</option>'+arr.map(i=>'<option value="'+esc(i.nombre)+'">'+esc(i.nombre)+'</option>').join('');
   if(cur)sel.value=cur;
 }
 
-// ── CONFIG ──
 async function updateLastGeneral(){
   const val=parseInt(document.getElementById('cfgNewLastGeneral').value);
   if(isNaN(val)||val<0){toast('Ingresa un número válido.','error');return;}
@@ -674,7 +668,6 @@ async function updateLastGeneral(){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
-// ── CATALOGS ──
 async function addCatalogItem(colKey,inputId,listId){
   const input=document.getElementById(inputId);const nombre=input.value.trim();
   if(!nombre){toast('Escribe un nombre primero.','error');return;}
@@ -701,10 +694,9 @@ function renderCatalogList(colKey){
   };
   const{arr,listId}=map[colKey];const el=document.getElementById(listId);
   if(!arr.length){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Sin elementos aún.</div>';return;}
-  el.innerHTML=arr.map(i=>`<div class="catalog-item"><span class="catalog-item-name">${esc(i.nombre)}</span><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCatalogItem('${colKey}','${i.id}')">🗑</button></div>`).join('');
+  el.innerHTML=arr.map(i=>'<div class="catalog-item"><span class="catalog-item-name">'+esc(i.nombre)+'</span><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCatalogItem(''+colKey+'',''+i.id+'')">🗑</button></div>').join('');
 }
 
-// ── COUNTS / RENDER ──
 function updateCounts(){
   document.getElementById('cntSurgeries').textContent=_allSurgeries.length;
   document.getElementById('cntUsers').textContent=_allUsers.length;
@@ -718,43 +710,22 @@ function renderDashboard(){
   });
   const todayStr=now.toISOString().split('T')[0];
   const todayCount=_allSurgeries.filter(s=>s.fecha===todayStr).length;
-  
+
   document.getElementById('statTotal').textContent=_allSurgeries.length;
   document.getElementById('statMonth').textContent=thisMonth.length;
   document.getElementById('statToday').textContent=todayCount;
   document.getElementById('statUsers').textContent=_allUsers.length||'—';
-  
+
   const recent=[..._allSurgeries].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).slice(0,5);
   const body=document.getElementById('recentSurgeriesBody');
   if(!recent.length){body.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin registros aún</div></div></td></tr>';return;}
-  body.innerHTML=recent.map(s=>`<tr>
-    <td style="font-weight:600">${s.numGeneral||'—'}</td>
-    <td style="color:var(--text4);font-size:11px">${s.numMensual||'—'}</td>
-    <td>${formatDate(s.fecha)}</td>
-    <td style="font-weight:600;color:var(--text)">${esc(s.paciente)}</td>
-    <td>${esc(s.cirugia)}</td><td>${esc(s.especialidad||'—')}</td><td>${esc(s.medico||'—')}</td>
-    <td>${esc(s.sala||'—')}</td><td>${esc(s.equipo||'—')}</td></tr>`).join('');
+  body.innerHTML=recent.map(s=>'<tr><td style="font-weight:600">'+(s.numGeneral||'—')+'</td><td style="color:var(--text4);font-size:11px">'+(s.numMensual||'—')+'</td><td>'+formatDate(s.fecha)+'</td><td style="font-weight:600;color:var(--text)">'+esc(s.paciente)+'</td><td>'+esc(s.cirugia)+'</td><td>'+esc(s.especialidad||'—')+'</td><td>'+esc(s.medico||'—')+'</td><td>'+esc(s.sala||'—')+'</td><td>'+esc(s.equipo||'—')+'</td></tr>').join('');
 }
 function renderSurgeries(list){
   const data=(list||[..._allSurgeries]).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const body=document.getElementById('surgeriesBody');
   if(!data.length){body.innerHTML='<tr><td colspan="18"><div class="empty-state"><div class="empty-icon">🏥</div><div class="empty-title">Sin cirugías registradas</div></div></td></tr>';return;}
-  body.innerHTML=data.map(s=>`<tr>
-    <td style="font-weight:700;color:var(--accent)">${s.numGeneral||'—'}</td>
-    <td style="color:var(--text4);font-size:11px">${s.numMensual||'—'}</td>
-    <td>${formatDate(s.fecha)}</td>
-    <td style="font-weight:600;color:var(--text)">${esc(s.paciente)}</td>
-    <td>${esc(s.dni)}</td><td>${s.edad||'—'}</td>
-    <td>${esc(s.especialidad||'—')}</td><td>${esc(s.cirugia)}</td>
-    <td>${esc(s.medico||'—')}</td><td>${esc(s.tecnologo||'—')}</td>
-    <td>${s.dosisMGy!=null?s.dosisMGy:'—'}</td><td>${s.dap!=null?s.dap:'—'}</td>
-    <td>${esc(s.tiempoRad)}</td><td>${esc(s.horaIni)}</td><td>${esc(s.horaFin)}</td>
-    <td>${esc(s.sala||'—')}</td><td>${esc(s.equipo||'—')}</td>
-    <td><div class="td-actions">
-      <button class="btn btn-sm btn-secondary btn-icon" title="Editar" onclick="editSurgery('${s.id}')">✏️</button>
-      <button class="btn btn-sm btn-gold btn-icon" title="PDF" onclick="exportOneSurgeryPDF('${s.id}')">📄</button>
-      <button class="btn btn-sm btn-danger btn-icon" title="Eliminar" onclick="deleteSurgery('${s.id}')">🗑</button>
-    </div></td></tr>`).join('');
+  body.innerHTML=data.map(s=>'<tr><td style="font-weight:700;color:var(--accent)">'+(s.numGeneral||'—')+'</td><td style="color:var(--text4);font-size:11px">'+(s.numMensual||'—')+'</td><td>'+formatDate(s.fecha)+'</td><td style="font-weight:600;color:var(--text)">'+esc(s.paciente)+'</td><td>'+esc(s.dni)+'</td><td>'+(s.edad||'—')+'</td><td>'+esc(s.especialidad||'—')+'</td><td>'+esc(s.cirugia)+'</td><td>'+esc(s.medico||'—')+'</td><td>'+esc(s.tecnologo||'—')+'</td><td>'+(s.dosisMGy!=null?s.dosisMGy:'—')+'</td><td>'+(s.dap!=null?s.dap:'—')+'</td><td>'+esc(s.tiempoRad)+'</td><td>'+esc(s.horaIni)+'</td><td>'+esc(s.horaFin)+'</td><td>'+esc(s.sala||'—')+'</td><td>'+esc(s.equipo||'—')+'</td><td><div class="td-actions"><button class="btn btn-sm btn-secondary btn-icon" title="Editar" onclick="editSurgery(''+s.id+'')">✏️</button><button class="btn btn-sm btn-gold btn-icon" title="PDF" onclick="exportOneSurgeryPDF(''+s.id+'')">📄</button><button class="btn btn-sm btn-danger btn-icon" title="Eliminar" onclick="deleteSurgery(''+s.id+'')">🗑</button></div></td></tr>').join('');
 }
 function filterSurgeries(v){
   const lv=v.toLowerCase();
@@ -768,25 +739,16 @@ function filterSurgeries(v){
 function renderUsers(list){
   const data=list||_allUsers;const body=document.getElementById('usersBody');
   if(!data.length){body.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Sin usuarios</div></div></td></tr>';return;}
-  body.innerHTML=data.map(u=>`<tr>
-    <td style="font-weight:600;color:var(--text)">${esc(u.dni)}</td><td>${esc(u.nombre||'—')}</td>
-    <td>${u.rol==='admin'?'<span class="badge badge-blue">Admin</span>':'<span class="badge badge-gold">Usuario</span>'}</td>
-    <td style="font-size:12px;color:var(--text3)">${formatDate(u.created)}</td>
-    <td><div class="td-actions">
-      <button class="btn btn-sm btn-secondary" onclick="editUser('${u.dni}')">✏️ Editar</button>
-      <button class="btn btn-sm btn-secondary" onclick="openResetPass('${u.dni}')">🔑 Clave</button>
-      ${u.dni!=='admin'?`<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser('${u.dni}')">🗑</button>`:''}
-    </div></td></tr>`).join('');
+  body.innerHTML=data.map(u=>'<tr><td style="font-weight:600;color:var(--text)">'+esc(u.dni)+'</td><td>'+esc(u.nombre||'—')+'</td><td>'+(u.rol==='admin'?'<span class="badge badge-blue">Admin</span>':'<span class="badge badge-gold">Usuario</span>')+'</td><td style="font-size:12px;color:var(--text3)">'+formatDate(u.created)+'</td><td><div class="td-actions"><button class="btn btn-sm btn-secondary" onclick="editUser(''+u.dni+'')">✏️ Editar</button><button class="btn btn-sm btn-secondary" onclick="openResetPass(''+u.dni+'')">🔑 Clave</button>'+(u.dni!=='admin'?'<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser(''+u.dni+'')">🗑</button>':'')+'</div></td></tr>').join('');
 }
 function filterUsersRender(v){const lv=v.toLowerCase();renderUsers(lv?_allUsers.filter(u=>u.dni.includes(lv)||(u.nombre||'').toLowerCase().includes(lv)):null);}
 
-// ── SURGERY CRUD ──
 async function getNextNumbers(fecha){
   const{db,doc,getDoc,updateDoc,COL_CONFIG}=FB;
   const cfgSnap=await getDoc(doc(db,COL_CONFIG,"counters"));
   let lastGen=cfgSnap.exists()?(cfgSnap.data().lastGeneralNumber||0):0;
   const nextGeneral=lastGen+1;
-  
+
   const y=fecha.getFullYear();const m=fecha.getMonth();
   const monthCount=_allSurgeries.filter(s=>{
     if(!s.fecha)return false;
@@ -794,7 +756,7 @@ async function getNextNumbers(fecha){
     return d.getFullYear()===y&&d.getMonth()===m;
   }).length;
   const nextMensual=monthCount+1;
-  
+
   return{nextGeneral,nextMensual,lastGen};
 }
 
@@ -847,17 +809,17 @@ async function saveSurgery(){
   const horaIni=document.getElementById('sHoraIni').value;
   const horaFin=document.getElementById('sHoraFin').value;
   const equipo=document.getElementById('sEquipo').value;
-  
+
   if(!fechaVal||!paciente||!dni||!edad||!especialidad||!cirugia||!sala||!medico||!tecnologo||!dosis||!dap||!tiempoRad||!horaIni||!horaFin||!equipo){
     showAlert('surgeryAlert','Todos los campos son obligatorios (*).');return;
   }
-  
+
   const btn=document.getElementById('saveSurgeryBtn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
-  
+
   try{
     const{db,doc,collection,addDoc,updateDoc,COL_SURGERY,COL_CONFIG}=FB;
     let numGeneral,numMensual;
-    
+
     if(!editingSurgeryId){
       const fechaObj=new Date(fechaVal+'T00:00:00');
       const nums=await getNextNumbers(fechaObj);
@@ -871,14 +833,14 @@ async function saveSurgery(){
       numGeneral=existing?.numGeneral;
       numMensual=existing?.numMensual;
     }
-    
+
     const data={
       fecha:fechaVal,paciente,dni,edad:parseInt(edad),especialidad,cirugia,sala,medico,tecnologo,
       dosisMGy:parseFloat(dosis),dap:parseFloat(dap),tiempoRad,horaIni,horaFin,equipo,
       numGeneral,numMensual,
       updatedAt:new Date().toISOString()
     };
-    
+
     if(editingSurgeryId){
       await updateDoc(doc(db,COL_SURGERY,editingSurgeryId),data);
       toast('Cirugía actualizada correctamente','success');
@@ -902,7 +864,6 @@ async function deleteSurgery(id){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
-// ── USER CRUD ──
 function openUserModal(){
   editingUserDni=null;
   document.getElementById('userModalTitle').textContent='Nuevo Usuario';
@@ -946,12 +907,11 @@ async function saveUser(){
   finally{btn.disabled=false;btn.textContent=editingUserDni?'Guardar Cambios':'Crear Usuario';}
 }
 async function deleteUser(dni){
-  if(!confirm(`¿Eliminar el usuario ${dni}?`))return;
+  if(!confirm('¿Eliminar el usuario '+dni+'?'))return;
   try{const{db,doc,deleteDoc,COL_USERS}=FB;await deleteDoc(doc(db,COL_USERS,dni));toast('Usuario eliminado','error');await loadUsers();}
   catch(e){toast('Error: '+e.message,'error');}
 }
 
-// ── PASSWORD ──
 function openResetPass(dni){document.getElementById('resetTargetDni').value=dni;document.getElementById('newPass').value='';showAlert('resetAlert','Nueva contraseña para: '+dni,'info');openModal('resetPassModal');}
 async function doResetPassword(){
   const dni=document.getElementById('resetTargetDni').value;const pass=document.getElementById('newPass').value;
@@ -959,11 +919,10 @@ async function doResetPassword(){
   try{
     const{db,doc,updateDoc,COL_USERS}=FB;
     await updateDoc(doc(db,COL_USERS,dni),{pass});
-    closeModal('resetPassModal');toast(`Contraseña actualizada para ${dni}`,'success');
+    closeModal('resetPassModal');toast('Contraseña actualizada para '+dni,'success');
   }catch(e){showAlert('resetAlert','Error: '+e.message,'error');}
 }
 
-// ── EXPORT PDF ──
 function openExportModal(){
   const today=new Date().toISOString().split('T')[0];
   const first=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString().split('T')[0];
@@ -974,7 +933,7 @@ function openExportModal(){
 function updateExportCount(){
   const desde=document.getElementById('exportFechaDesde').value;
   const hasta=document.getElementById('exportFechaHasta').value;
-  document.getElementById('exportCount').textContent=`Se exportarán ${filterByDateRange(_allSurgeries,desde,hasta).length} registro(s)`;
+  document.getElementById('exportCount').textContent='Se exportarán '+filterByDateRange(_allSurgeries,desde,hasta).length+' registro(s)';
 }
 document.getElementById('exportFechaDesde').addEventListener('change',updateExportCount);
 document.getElementById('exportFechaHasta').addEventListener('change',updateExportCount);
@@ -987,14 +946,14 @@ function doExportPDF(){
   const hasta=document.getElementById('exportFechaHasta').value;
   const data=filterByDateRange(_allSurgeries,desde,hasta).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
   if(!data.length){toast('No hay registros en ese rango.','error');return;}
-  
+
   const doc=getPDFBase('landscape');
   doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(26,86,219);
   doc.text('Registro de Cirugías - Radiación Intraoperatoria',14,42);
   doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
-  const rl=desde&&hasta?`Del ${formatDate(desde)} al ${formatDate(hasta)}`:desde?`Desde ${formatDate(desde)}`:hasta?`Hasta ${formatDate(hasta)}`:'Todos los registros';
-  doc.text(rl+` — ${data.length} registro(s)`,14,49);
-  
+  const rl=desde&&hasta?'Del '+formatDate(desde)+' al '+formatDate(hasta):desde?'Desde '+formatDate(desde):hasta?'Hasta '+formatDate(hasta):'Todos los registros';
+  doc.text(rl+' — '+data.length+' registro(s)',14,49);
+
   doc.autoTable({startY:54,
     head:[['N°G','N°M','Fecha','Paciente','DNI','Edad','Especialidad','Cirugía','Sala','Médico','TM','Dosis mGy','DAP','T.Rad','H.Ini','H.Fin','Equipo']],
     body:data.map(s=>[
@@ -1020,7 +979,7 @@ async function exportOneSurgeryPDF(id){
   const doc=getPDFBase('portrait');
   doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(26,86,219);
   doc.text('Ficha de Cirugía',14,40);
-  
+
   doc.autoTable({startY:46,
     body:[
       ['N° General',s.numGeneral||'—'],['N° Mensual',s.numMensual||'—'],
@@ -1055,22 +1014,20 @@ function getPDFBase(orientation){
 function addFooter(doc,orientation){
   const W=orientation==='landscape'?297:210;const H=orientation==='landscape'?210:297;
   const n=doc.internal.getNumberOfPages();
-  for(let i=1;i<=n;i++){doc.setPage(i);doc.setFillColor(26,86,219);doc.rect(0,H-10,W,10,'F');doc.setTextColor(200,215,255);doc.setFontSize(6);doc.text('Hospital Alberto Sabogal Sologuren — Essalud — Documento confidencial',10,H-4);doc.text(`Pág. ${i} / ${n}`,W-20,H-4);}
+  for(let i=1;i<=n;i++){doc.setPage(i);doc.setFillColor(26,86,219);doc.rect(0,H-10,W,10,'F');doc.setTextColor(200,215,255);doc.setFontSize(6);doc.text('Hospital Alberto Sabogal Sologuren — Essalud — Documento confidencial',10,H-4);doc.text('Pág. '+i+' / '+n,W-20,H-4);}
 }
 
-// ── HELPERS ──
 function formatDate(d){if(!d)return'—';try{return new Date(d+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return d;}}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function closeSurgeryModal(){closeModal('surgeryModal');}
 function closeUserModal(){closeModal('userModal');}
-function showAlert(id,msg,type='error'){const el=document.getElementById(id);el.textContent=msg;el.className=`alert alert-${type} show`;}
+function showAlert(id,msg,type='error'){const el=document.getElementById(id);el.textContent=msg;el.className='alert alert-'+type+' show';}
 function hideAlert(id){document.getElementById(id).className='alert';}
 let _tt;
-function toast(msg,type){const el=document.getElementById('toast');const ic={success:'✅',error:'❌','':'ℹ️'};el.innerHTML=`${ic[type]||'ℹ️'} ${msg}`;el.className=`show${type?' t-'+type:''}`;clearTimeout(_tt);_tt=setTimeout(()=>el.className='',3500);}
+function toast(msg,type){const el=document.getElementById('toast');const ic={success:'✅',error:'❌','':'ℹ️'};el.innerHTML=(ic[type]||'ℹ️')+' '+msg;el.className='show'+(type?' t-'+type:'');clearTimeout(_tt);_tt=setTimeout(()=>el.className='',3500);}
 document.querySelectorAll('.modal-overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');}));
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));});
-</script>
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));});</script>
 </body>
 </html>
