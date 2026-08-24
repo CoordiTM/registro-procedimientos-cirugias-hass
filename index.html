@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, setDoc, getDoc, getDocs,
-  addDoc, updateDoc, deleteDoc, query, where
+  addDoc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -28,13 +28,14 @@ const db  = getFirestore(app);
 
 window._FB = {
   db,
-  collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where,
+  collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
   COL_USERS: "usuarios",
-  COL_SURGERY: "cirugias_hnass",
+  COL_SURGERY: "cirugias_hnass_v2",
   COL_ESPECIALIDADES: "especialidades",
   COL_TECNOLOGOS: "tecnologos",
   COL_EQUIPOS: "equipos",
-  COL_CONFIG: "config"
+  COL_SALAS: "salas",
+  COL_CONFIG: "config_hnass"
 };
 document.dispatchEvent(new Event("firebaseReady"));
 </script>
@@ -55,7 +56,6 @@ document.dispatchEvent(new Event("firebaseReady"));
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
   .screen{display:none;min-height:100vh}.screen.active{display:flex}
 
-  /* SPLASH */
   #splashScreen{align-items:center;justify-content:center;flex-direction:column;gap:20px;background:var(--bg)}
   .splash-logo{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 4px 24px rgba(26,86,219,.25);animation:pulse 1.5s ease-in-out infinite}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
@@ -66,7 +66,6 @@ document.dispatchEvent(new Event("firebaseReady"));
   .splash-dots span:nth-child(2){animation-delay:.2s}.splash-dots span:nth-child(3){animation-delay:.4s}
   @keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 
-  /* LOGIN */
   #loginScreen{align-items:center;justify-content:center;flex-direction:column;padding:20px;background:linear-gradient(135deg,#e8f0fe 0%,#f4f6fb 60%,#fef9ec 100%)}
   .login-box{background:#fff;border:1px solid var(--border2);border-radius:20px;padding:48px 44px;width:100%;max-width:420px;box-shadow:var(--shadow2);position:relative;overflow:hidden}
   .login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),#6366f1,var(--gold2))}
@@ -76,7 +75,6 @@ document.dispatchEvent(new Event("firebaseReady"));
   .brand-sub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-top:4px}
   .login-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);margin-bottom:24px;text-align:center}
 
-  /* FORM */
   .field-group{margin-bottom:16px}
   label{display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
   input,select,textarea{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color .2s,box-shadow .2s;outline:none}
@@ -87,7 +85,6 @@ document.dispatchEvent(new Event("firebaseReady"));
   input[type="date"]::-webkit-calendar-picker-indicator{opacity:.5;cursor:pointer}
   input[type="time"]::-webkit-calendar-picker-indicator{opacity:.5;cursor:pointer}
 
-  /* BUTTONS */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;text-decoration:none;white-space:nowrap}
   .btn-primary{background:var(--accent);color:#fff;width:100%;padding:13px;font-size:15px}
   .btn-primary:hover{background:var(--accent2);box-shadow:0 4px 14px rgba(26,86,219,.3)}
@@ -103,14 +100,12 @@ document.dispatchEvent(new Event("firebaseReady"));
   .btn-sm{padding:7px 13px;font-size:12px;border-radius:8px;width:auto}
   .btn-icon{width:34px;height:34px;padding:0;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
 
-  /* ALERTS */
   .alert{padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none;font-weight:500}
   .alert.show{display:block}
   .alert-error{background:#fef2f2;border:1.5px solid #fca5a5;color:#b91c1c}
   .alert-success{background:#f0fdf4;border:1.5px solid #86efac;color:#15803d}
   .alert-info{background:#eff6ff;border:1.5px solid #93c5fd;color:#1d4ed8}
 
-  /* TOPBAR */
   #appScreen{flex-direction:column}
   .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:0 24px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.06)}
   .topbar-brand{display:flex;align-items:center;gap:12px}
@@ -120,22 +115,20 @@ document.dispatchEvent(new Event("firebaseReady"));
   .topbar-right{display:flex;align-items:center;gap:10px}
   .user-chip{background:var(--bg3);border:1.5px solid var(--border);border-radius:20px;padding:5px 14px;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px;font-weight:500}
   .role-badge{background:var(--accent);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+  .role-badge.user{background:var(--gold2);color:#fff}
 
-  /* NAV */
   .nav-tabs{background:#fff;border-bottom:1.5px solid var(--border);padding:0 24px;display:flex;gap:2px;overflow-x:auto;flex-shrink:0}
   .nav-tab{padding:14px 16px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;border-bottom:2.5px solid transparent;white-space:nowrap;transition:all .18s;display:flex;align-items:center;gap:7px}
   .nav-tab:hover{color:var(--text2);background:var(--bg3)}
   .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
   .tab-count{background:var(--accentlt);color:var(--accent);font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700}
 
-  /* CONTENT */
   .main-content{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
   .tab-pane{display:none}.tab-pane.active{display:block}
   .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
   .page-title{font-family:'Playfair Display',serif;font-size:26px;color:var(--text);font-weight:700}
   .page-subtitle{font-size:13px;color:var(--text3);margin-top:3px}
 
-  /* STATS */
   .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
   .stat-card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
   .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
@@ -144,7 +137,6 @@ document.dispatchEvent(new Event("firebaseReady"));
   .stat-label{font-size:12px;color:var(--text3);margin-top:5px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
   .stat-icon{font-size:22px;margin-bottom:6px}
 
-  /* TABLE */
   .table-wrapper{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
   .table-header{padding:14px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:var(--surface2)}
   .search-input{background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;width:240px;outline:none;font-family:'DM Sans',sans-serif}
@@ -161,10 +153,9 @@ document.dispatchEvent(new Event("firebaseReady"));
   .badge-green{background:#dcfce7;color:#15803d}.badge-red{background:#fee2e2;color:#b91c1c}
   .badge-gray{background:#f3f4f6;color:#6b7280}
 
-  /* MODAL */
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
   .modal-overlay.open{display:flex}
-  .modal{background:#fff;border:1.5px solid var(--border);border-radius:18px;width:100%;max-width:800px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow2)}
+  .modal{background:#fff;border:1.5px solid var(--border);border-radius:18px;width:100%;max-width:840px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow2)}
   .modal-header{padding:22px 24px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:sticky;top:0;background:#fff;border-bottom:1.5px solid var(--border);z-index:10}
   .modal-title{font-family:'Playfair Display',serif;font-size:21px;color:var(--text)}
   .modal-close{width:34px;height:34px;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:16px;flex-shrink:0;transition:all .18s}
@@ -172,16 +163,15 @@ document.dispatchEvent(new Event("firebaseReady"));
   .modal-body{padding:24px}
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .form-row.three{grid-template-columns:1fr 1fr 1fr}
+  .form-row.four{grid-template-columns:1fr 1fr 1fr 1fr}
   .form-row.single{grid-template-columns:1fr}
   .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:18px;border-top:1.5px solid var(--border)}
   .section-divider{border:none;border-top:1.5px solid var(--border);margin:20px 0}
   .section-label{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 
-  /* DATE RANGE */
   .date-range-box{background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px}
   .date-range-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-  /* EMPTY */
   .empty-state{padding:52px 20px;text-align:center}
   .empty-icon{font-size:42px;margin-bottom:10px;opacity:.5}
   .empty-title{font-size:15px;color:var(--text3);font-weight:500}
@@ -194,7 +184,6 @@ document.dispatchEvent(new Event("firebaseReady"));
   #toast.t-success{border-color:#86efac;background:#f0fdf4}
   #toast.t-error{border-color:#fca5a5;background:#fef2f2}
 
-  /* CATALOGS */
   .catalog-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
   .catalog-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px;font-weight:500}
   .catalog-item-name{color:var(--text);flex:1}
@@ -202,7 +191,6 @@ document.dispatchEvent(new Event("firebaseReady"));
   .catalog-add-row input{flex:1;margin-bottom:0}
   .catalog-section{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
 
-  /* CONFIG BOX */
   .config-box{background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
   .config-value{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--accent)}
 
@@ -210,7 +198,7 @@ document.dispatchEvent(new Event("firebaseReady"));
   ::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:3px}
 
   @media(max-width:720px){
-    .form-row,.form-row.three,.date-range-row{grid-template-columns:1fr}
+    .form-row,.form-row.three,.form-row.four,.date-range-row{grid-template-columns:1fr}
     .topbar-name,.topbar-sub{display:none}
     .stats-grid{grid-template-columns:1fr 1fr}
     .main-content{padding:14px}
@@ -269,9 +257,9 @@ document.dispatchEvent(new Event("firebaseReady"));
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
     <button class="nav-tab" onclick="switchTab('surgeries',this)">🏥 Cirugías <span id="cntSurgeries" class="tab-count">0</span></button>
-    <button class="nav-tab admin-only" onclick="switchTab('users',this)">👥 Usuarios <span id="cntUsers" class="tab-count">0</span></button>
-    <button class="nav-tab admin-only" onclick="switchTab('catalogs',this)">🗂️ Catálogos</button>
-    <button class="nav-tab admin-only" onclick="switchTab('config',this)">⚙️ Configuración</button>
+    <button class="nav-tab admin-only" onclick="switchTab('users',this)" style="display:none">👥 Usuarios <span id="cntUsers" class="tab-count">0</span></button>
+    <button class="nav-tab admin-only" onclick="switchTab('catalogs',this)" style="display:none">🗂️ Catálogos</button>
+    <button class="nav-tab admin-only" onclick="switchTab('config',this)" style="display:none">⚙️ Configuración</button>
   </div>
 
   <div class="main-content">
@@ -285,14 +273,14 @@ document.dispatchEvent(new Event("firebaseReady"));
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-icon">🏥</div><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Cirugías</div></div>
         <div class="stat-card gold"><div class="stat-icon">📅</div><div class="stat-num" id="statMonth">—</div><div class="stat-label">Este Mes</div></div>
-        <div class="stat-card success"><div class="stat-icon">✅</div><div class="stat-num" id="statCompleted">—</div><div class="stat-label">Completadas</div></div>
+        <div class="stat-card success"><div class="stat-icon">✅</div><div class="stat-num" id="statToday">—</div><div class="stat-label">Hoy</div></div>
         <div class="stat-card danger"><div class="stat-icon">👥</div><div class="stat-num" id="statUsers">—</div><div class="stat-label">Usuarios</div></div>
       </div>
       <div class="table-wrapper">
         <div class="table-header"><div style="font-weight:700;color:var(--text);font-size:14px">Cirugías Recientes</div></div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>N°G</th><th>N°M</th><th>Paciente</th><th>Cirugía</th><th>Especialidad</th><th>Médico</th><th>Fecha</th><th>Equipo</th></tr></thead>
+            <thead><tr><th>N°G</th><th>N°M</th><th>Fecha</th><th>Paciente</th><th>Cirugía</th><th>Especialidad</th><th>Médico</th><th>Sala</th><th>Equipo</th></tr></thead>
             <tbody id="recentSurgeriesBody"></tbody>
           </table>
         </div>
@@ -319,7 +307,7 @@ document.dispatchEvent(new Event("firebaseReady"));
               <tr>
                 <th>N°G</th><th>N°M</th><th>Fecha</th><th>Paciente</th><th>DNI</th><th>Edad</th>
                 <th>Especialidad</th><th>Cirugía</th><th>Médico</th><th>TM</th>
-                <th>Dosis mGy</th><th>DAP</th><th>T.Rad</th><th>H.Ini</th><th>H.Fin</th><th>Equipo</th>
+                <th>Dosis</th><th>DAP</th><th>T.Rad</th><th>H.Ini</th><th>H.Fin</th><th>Sala</th><th>Equipo</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -368,6 +356,12 @@ document.dispatchEvent(new Event("firebaseReady"));
         <div id="listEquipos" class="catalog-list"></div>
         <div class="catalog-add-row"><input type="text" id="newEquipo" placeholder="Ej: C-arm Philips"/><button class="btn btn-primary btn-sm" onclick="addCatalogItem('equipos','newEquipo','listEquipos')">+ Agregar</button></div>
       </div>
+      <div class="catalog-section">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px">🏥 Salas</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Aparecen en el selector "Sala" (SOP, URVI 1, FLUOROSCOPIA)</div>
+        <div id="listSalas" class="catalog-list"></div>
+        <div class="catalog-add-row"><input type="text" id="newSala" placeholder="Ej: SOP"/><button class="btn btn-primary btn-sm" onclick="addCatalogItem('salas','newSala','listSalas')">+ Agregar</button></div>
+      </div>
     </div>
 
     <!-- CONFIGURACIÓN -->
@@ -375,10 +369,10 @@ document.dispatchEvent(new Event("firebaseReady"));
       <div class="page-header"><div><div class="page-title">Configuración del Sistema</div><div class="page-subtitle">Ajustes de numeración y parámetros</div></div></div>
       
       <div class="config-box">
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:8px">Número General Actual</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:8px">Último Número General Asignado</div>
         <div class="config-value" id="cfgLastGeneral">—</div>
-        <div style="font-size:13px;color:var(--text3);margin-top:8px;line-height:1.5">Este es el último número general asignado. El siguiente registro usará el número siguiente.</div>
-        <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+        <div style="font-size:13px;color:var(--text3);margin-top:8px;line-height:1.5">El siguiente registro usará el número siguiente a este.</div>
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <input type="number" id="cfgNewLastGeneral" placeholder="Ej: 150" style="max-width:200px;margin-bottom:0"/>
           <button class="btn btn-primary btn-sm" onclick="updateLastGeneral()">Actualizar número</button>
         </div>
@@ -388,9 +382,9 @@ document.dispatchEvent(new Event("firebaseReady"));
         <div style="font-size:13px;color:var(--text2);font-weight:600;line-height:1.6">
           <p style="margin-bottom:8px"><strong>Reglas de numeración:</strong></p>
           <ul style="padding-left:18px;color:var(--text3)">
-            <li>El <strong>Número General</strong> es correlativo indefinido y se incrementa automáticamente en cada nuevo registro.</li>
+            <li>El <strong>Número General</strong> es correlativo indefinido y se incrementa automáticamente.</li>
             <li>El <strong>Número Mensual</strong> se reinicia automáticamente el día 1 de cada mes.</li>
-            <li>Si necesitas ajustar el contador general (por ejemplo, empezaste en papel y vas a digitalizar), usa el campo de arriba.</li>
+            <li>Si migras desde registro físico, actualiza el número general al último usado en papel.</li>
           </ul>
         </div>
       </div>
@@ -420,10 +414,11 @@ document.dispatchEvent(new Event("firebaseReady"));
         <div class="field-group"><label>DNI *</label><input type="text" id="sDni" placeholder="Número de DNI"/></div>
       </div>
       
-      <div class="form-row three">
+      <div class="form-row four">
         <div class="field-group"><label>Edad *</label><input type="number" id="sEdad" placeholder="Años"/></div>
         <div class="field-group"><label>Especialidad *</label><select id="sEspecialidad"><option value="">— Seleccionar —</option></select></div>
         <div class="field-group"><label>Cirugía *</label><input type="text" id="sCirugia" placeholder="Tipo de cirugía"/></div>
+        <div class="field-group"><label>Sala *</label><select id="sSala"><option value="">— Seleccionar —</option></select></div>
       </div>
       
       <div class="form-row">
@@ -431,16 +426,17 @@ document.dispatchEvent(new Event("firebaseReady"));
         <div class="field-group"><label>Tecnólogo Médico *</label><select id="sTecnologo"><option value="">— Seleccionar —</option></select></div>
       </div>
       
-      <div class="form-row three">
+      <div class="form-row four">
         <div class="field-group"><label>Dosis (mGy) *</label><input type="number" step="any" id="sDosis" placeholder="Ej: 12.5"/></div>
         <div class="field-group"><label>DAP (Gy·cm²) *</label><input type="number" step="any" id="sDap" placeholder="Ej: 45.2"/></div>
         <div class="field-group"><label>Tiempo Radiación (hh:mm:ss) *</label><input type="time" step="1" id="sTiempoRad"/></div>
+        <div class="field-group"><label>Equipo *</label><select id="sEquipo"><option value="">— Seleccionar —</option></select></div>
       </div>
       
       <div class="form-row three">
         <div class="field-group"><label>Hora Inicio *</label><input type="time" id="sHoraIni"/></div>
         <div class="field-group"><label>Hora Final *</label><input type="time" id="sHoraFin"/></div>
-        <div class="field-group"><label>Equipo *</label><select id="sEquipo"><option value="">— Seleccionar —</option></select></div>
+        <div class="field-group" style="display:flex;align-items:flex-end"><span style="font-size:12px;color:var(--text3);padding-bottom:12px">Todos los campos son obligatorios</span></div>
       </div>
       
       <div class="form-actions">
@@ -512,12 +508,17 @@ document.dispatchEvent(new Event("firebaseReady"));
 <script>
 let FB=null,currentUser=null,editingSurgeryId=null,editingUserDni=null;
 let _allSurgeries=[],_allUsers=[];
-let _tecnologos=[],_especialidades=[],_equipos=[];
+let _tecnologos=[],_especialidades=[],_equipos=[],_salas=[];
 let _lastGeneralNumber=0;
 
 document.addEventListener("firebaseReady",async()=>{
   FB=window._FB;
-  try{await ensureAdminExists();await ensureConfigExists();}catch(e){console.warn(e);}
+  try{
+    await ensureAdminExists();
+    await ensureConfigExists();
+    // Precargar salas por defecto si no existen
+    await ensureDefaultSalas();
+  }catch(e){console.warn(e);}
   showScreen('loginScreen');
 });
 
@@ -533,18 +534,42 @@ async function ensureConfigExists(){
   if(!snap.exists()) await setDoc(doc(db,COL_CONFIG,"counters"),{lastGeneralNumber:0});
 }
 
+async function ensureDefaultSalas(){
+  const{db,collection,getDocs,addDoc,COL_SALAS}=FB;
+  const snap=await getDocs(collection(db,COL_SALAS));
+  if(snap.empty){
+    const defaultSalas=["SOP","URVI 1","FLUOROSCOPIA"];
+    for(const nombre of defaultSalas){
+      await addDoc(collection(db,COL_SALAS),{nombre,created:new Date().toISOString()});
+    }
+  }
+}
+
 // ── NAV ──
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showLogin(){showScreen('loginScreen');}
 function showApp(){
   showScreen('appScreen');
-  const isAdmin=currentUser.rol==='admin';
-  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAdmin?'':'none');
+  const isAdmin=currentUser && currentUser.rol==='admin';
+  console.log('Rol actual:', currentUser?.rol, 'isAdmin:', isAdmin);
+  
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display=isAdmin?'':'none';
+  });
+  
   document.getElementById('topbarUserDni').textContent=currentUser.dni;
-  const rb=document.getElementById('topbarRole');rb.textContent=isAdmin?'Admin':'Usuario';
+  const rb=document.getElementById('topbarRole');
+  rb.textContent=isAdmin?'Admin':'Usuario';
+  rb.className='role-badge'+(isAdmin?'':' user');
+  
   loadAll();
 }
 function switchTab(name,el){
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
 }
@@ -559,8 +584,10 @@ async function doLogin(){
     const{db,doc,getDoc,COL_USERS}=FB;
     const snap=await getDoc(doc(db,COL_USERS,dni));
     if(!snap.exists()||snap.data().pass!==pass){showAlert('loginAlert','DNI o contraseña incorrectos.');return;}
-    hideAlert('loginAlert');currentUser={...snap.data()};
-    document.getElementById('loginDni').value='';document.getElementById('loginPass').value='';
+    hideAlert('loginAlert');
+    currentUser={...snap.data()};
+    document.getElementById('loginDni').value='';
+    document.getElementById('loginPass').value='';
     showApp();
   }catch(e){showAlert('loginAlert','⚠️ Error: '+e.message);}
   finally{btn.disabled=false;btn.textContent='Ingresar';}
@@ -572,12 +599,12 @@ function doLogout(){currentUser=null;_allSurgeries=[];_allUsers=[];showLogin();}
 async function loadAll(){await Promise.all([loadConfig(),loadSurgeries(),loadUsers(),loadCatalogs()]);}
 
 async function loadConfig(){
-  if(currentUser?.rol!=='admin') return;
   try{
     const{db,doc,getDoc,COL_CONFIG}=FB;
     const snap=await getDoc(doc(db,COL_CONFIG,"counters"));
     if(snap.exists()){_lastGeneralNumber=snap.data().lastGeneralNumber||0;}
-    document.getElementById('cfgLastGeneral').textContent=_lastGeneralNumber;
+    const el=document.getElementById('cfgLastGeneral');
+    if(el) el.textContent=_lastGeneralNumber;
   }catch(e){console.error(e);}
 }
 
@@ -600,26 +627,35 @@ async function loadUsers(){
 }
 async function loadCatalogs(){
   try{
-    const{db,collection,getDocs,COL_TECNOLOGOS,COL_ESPECIALIDADES,COL_EQUIPOS}=FB;
-    const[st,se,sq]=await Promise.all([
+    const{db,collection,getDocs,COL_TECNOLOGOS,COL_ESPECIALIDADES,COL_EQUIPOS,COL_SALAS}=FB;
+    const[st,se,sq,ss]=await Promise.all([
       getDocs(collection(db,COL_TECNOLOGOS)),
       getDocs(collection(db,COL_ESPECIALIDADES)),
-      getDocs(collection(db,COL_EQUIPOS))
+      getDocs(collection(db,COL_EQUIPOS)),
+      getDocs(collection(db,COL_SALAS))
     ]);
     _tecnologos=st.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.nombre.localeCompare(b.nombre));
     _especialidades=se.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.nombre.localeCompare(b.nombre));
     _equipos=sq.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    _salas=ss.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.nombre.localeCompare(b.nombre));
     populateSelects();
-    if(currentUser?.rol==='admin'){renderCatalogList('tecnologos');renderCatalogList('especialidades');renderCatalogList('equipos');}
+    if(currentUser?.rol==='admin'){
+      renderCatalogList('tecnologos');
+      renderCatalogList('especialidades');
+      renderCatalogList('equipos');
+      renderCatalogList('salas');
+    }
   }catch(e){console.error(e);}
 }
 function populateSelects(){
   fillSelect('sEspecialidad',_especialidades,'— Seleccionar especialidad —');
   fillSelect('sTecnologo',_tecnologos,'— Seleccionar tecnólogo —');
   fillSelect('sEquipo',_equipos,'— Seleccionar equipo —');
+  fillSelect('sSala',_salas,'— Seleccionar sala —');
 }
 function fillSelect(id,arr,ph){
-  const sel=document.getElementById(id);const cur=sel.value;
+  const sel=document.getElementById(id);if(!sel)return;
+  const cur=sel.value;
   sel.innerHTML=`<option value="">${ph}</option>`+arr.map(i=>`<option value="${esc(i.nombre)}">${esc(i.nombre)}</option>`).join('');
   if(cur)sel.value=cur;
 }
@@ -657,7 +693,12 @@ async function deleteCatalogItem(colKey,id){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 function renderCatalogList(colKey){
-  const map={tecnologos:{arr:_tecnologos,listId:'listTecnologos'},especialidades:{arr:_especialidades,listId:'listEspecialidades'},equipos:{arr:_equipos,listId:'listEquipos'}};
+  const map={
+    tecnologos:{arr:_tecnologos,listId:'listTecnologos'},
+    especialidades:{arr:_especialidades,listId:'listEspecialidades'},
+    equipos:{arr:_equipos,listId:'listEquipos'},
+    salas:{arr:_salas,listId:'listSalas'}
+  };
   const{arr,listId}=map[colKey];const el=document.getElementById(listId);
   if(!arr.length){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Sin elementos aún.</div>';return;}
   el.innerHTML=arr.map(i=>`<div class="catalog-item"><span class="catalog-item-name">${esc(i.nombre)}</span><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCatalogItem('${colKey}','${i.id}')">🗑</button></div>`).join('');
@@ -675,24 +716,29 @@ function renderDashboard(){
     const d=new Date(s.fecha+'T00:00:00');
     return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
   });
+  const todayStr=now.toISOString().split('T')[0];
+  const todayCount=_allSurgeries.filter(s=>s.fecha===todayStr).length;
+  
   document.getElementById('statTotal').textContent=_allSurgeries.length;
   document.getElementById('statMonth').textContent=thisMonth.length;
-  document.getElementById('statCompleted').textContent=_allSurgeries.length;
+  document.getElementById('statToday').textContent=todayCount;
   document.getElementById('statUsers').textContent=_allUsers.length||'—';
+  
   const recent=[..._allSurgeries].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).slice(0,5);
   const body=document.getElementById('recentSurgeriesBody');
-  if(!recent.length){body.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin registros aún</div></div></td></tr>';return;}
+  if(!recent.length){body.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin registros aún</div></div></td></tr>';return;}
   body.innerHTML=recent.map(s=>`<tr>
     <td style="font-weight:600">${s.numGeneral||'—'}</td>
     <td style="color:var(--text4);font-size:11px">${s.numMensual||'—'}</td>
+    <td>${formatDate(s.fecha)}</td>
     <td style="font-weight:600;color:var(--text)">${esc(s.paciente)}</td>
     <td>${esc(s.cirugia)}</td><td>${esc(s.especialidad||'—')}</td><td>${esc(s.medico||'—')}</td>
-    <td>${formatDate(s.fecha)}</td><td>${esc(s.equipo||'—')}</td></tr>`).join('');
+    <td>${esc(s.sala||'—')}</td><td>${esc(s.equipo||'—')}</td></tr>`).join('');
 }
 function renderSurgeries(list){
   const data=(list||[..._allSurgeries]).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const body=document.getElementById('surgeriesBody');
-  if(!data.length){body.innerHTML='<tr><td colspan="17"><div class="empty-state"><div class="empty-icon">🏥</div><div class="empty-title">Sin cirugías registradas</div></div></td></tr>';return;}
+  if(!data.length){body.innerHTML='<tr><td colspan="18"><div class="empty-state"><div class="empty-icon">🏥</div><div class="empty-title">Sin cirugías registradas</div></div></td></tr>';return;}
   body.innerHTML=data.map(s=>`<tr>
     <td style="font-weight:700;color:var(--accent)">${s.numGeneral||'—'}</td>
     <td style="color:var(--text4);font-size:11px">${s.numMensual||'—'}</td>
@@ -703,7 +749,7 @@ function renderSurgeries(list){
     <td>${esc(s.medico||'—')}</td><td>${esc(s.tecnologo||'—')}</td>
     <td>${s.dosisMGy!=null?s.dosisMGy:'—'}</td><td>${s.dap!=null?s.dap:'—'}</td>
     <td>${esc(s.tiempoRad)}</td><td>${esc(s.horaIni)}</td><td>${esc(s.horaFin)}</td>
-    <td>${esc(s.equipo||'—')}</td>
+    <td>${esc(s.sala||'—')}</td><td>${esc(s.equipo||'—')}</td>
     <td><div class="td-actions">
       <button class="btn btn-sm btn-secondary btn-icon" title="Editar" onclick="editSurgery('${s.id}')">✏️</button>
       <button class="btn btn-sm btn-gold btn-icon" title="PDF" onclick="exportOneSurgeryPDF('${s.id}')">📄</button>
@@ -736,13 +782,11 @@ function filterUsersRender(v){const lv=v.toLowerCase();renderUsers(lv?_allUsers.
 
 // ── SURGERY CRUD ──
 async function getNextNumbers(fecha){
-  // General
   const{db,doc,getDoc,updateDoc,COL_CONFIG}=FB;
   const cfgSnap=await getDoc(doc(db,COL_CONFIG,"counters"));
   let lastGen=cfgSnap.exists()?(cfgSnap.data().lastGeneralNumber||0):0;
   const nextGeneral=lastGen+1;
   
-  // Mensual: count surgeries in same month/year as fecha
   const y=fecha.getFullYear();const m=fecha.getMonth();
   const monthCount=_allSurgeries.filter(s=>{
     if(!s.fecha)return false;
@@ -760,7 +804,7 @@ function openSurgeryModal(){
   document.getElementById('sFecha').value=new Date().toISOString().split('T')[0];
   document.getElementById('sNumGeneral').value='(Automático)';
   ['sPaciente','sDni','sEdad','sCirugia','sMedico','sDosis','sDap','sTiempoRad','sHoraIni','sHoraFin'].forEach(id=>document.getElementById(id).value='');
-  ['sEspecialidad','sTecnologo','sEquipo'].forEach(id=>document.getElementById(id).value='');
+  ['sEspecialidad','sTecnologo','sEquipo','sSala'].forEach(id=>document.getElementById(id).value='');
   hideAlert('surgeryAlert');openModal('surgeryModal');
 }
 
@@ -775,6 +819,7 @@ function editSurgery(id){
   document.getElementById('sEdad').value=s.edad||'';
   document.getElementById('sEspecialidad').value=s.especialidad||'';
   document.getElementById('sCirugia').value=s.cirugia||'';
+  document.getElementById('sSala').value=s.sala||'';
   document.getElementById('sMedico').value=s.medico||'';
   document.getElementById('sTecnologo').value=s.tecnologo||'';
   document.getElementById('sDosis').value=s.dosisMGy!=null?s.dosisMGy:'';
@@ -793,6 +838,7 @@ async function saveSurgery(){
   const edad=document.getElementById('sEdad').value;
   const especialidad=document.getElementById('sEspecialidad').value;
   const cirugia=document.getElementById('sCirugia').value.trim();
+  const sala=document.getElementById('sSala').value;
   const medico=document.getElementById('sMedico').value.trim();
   const tecnologo=document.getElementById('sTecnologo').value;
   const dosis=document.getElementById('sDosis').value;
@@ -802,7 +848,7 @@ async function saveSurgery(){
   const horaFin=document.getElementById('sHoraFin').value;
   const equipo=document.getElementById('sEquipo').value;
   
-  if(!fechaVal||!paciente||!dni||!edad||!especialidad||!cirugia||!medico||!tecnologo||!dosis||!dap||!tiempoRad||!horaIni||!horaFin||!equipo){
+  if(!fechaVal||!paciente||!dni||!edad||!especialidad||!cirugia||!sala||!medico||!tecnologo||!dosis||!dap||!tiempoRad||!horaIni||!horaFin||!equipo){
     showAlert('surgeryAlert','Todos los campos son obligatorios (*).');return;
   }
   
@@ -813,24 +859,21 @@ async function saveSurgery(){
     let numGeneral,numMensual;
     
     if(!editingSurgeryId){
-      // New: calculate numbers
       const fechaObj=new Date(fechaVal+'T00:00:00');
       const nums=await getNextNumbers(fechaObj);
       numGeneral=nums.nextGeneral;
       numMensual=nums.nextMensual;
-      // Update counter
       await updateDoc(doc(db,COL_CONFIG,"counters"),{lastGeneralNumber:nums.lastGen+1});
       _lastGeneralNumber=nums.lastGen+1;
       if(currentUser?.rol==='admin') document.getElementById('cfgLastGeneral').textContent=_lastGeneralNumber;
     }else{
-      // Edit: keep existing numbers
       const existing=_allSurgeries.find(x=>x.id===editingSurgeryId);
       numGeneral=existing?.numGeneral;
       numMensual=existing?.numMensual;
     }
     
     const data={
-      fecha:fechaVal,paciente,dni,edad:parseInt(edad),especialidad,cirugia,medico,tecnologo,
+      fecha:fechaVal,paciente,dni,edad:parseInt(edad),especialidad,cirugia,sala,medico,tecnologo,
       dosisMGy:parseFloat(dosis),dap:parseFloat(dap),tiempoRad,horaIni,horaFin,equipo,
       numGeneral,numMensual,
       updatedAt:new Date().toISOString()
@@ -953,10 +996,10 @@ function doExportPDF(){
   doc.text(rl+` — ${data.length} registro(s)`,14,49);
   
   doc.autoTable({startY:54,
-    head:[['N°G','N°M','Fecha','Paciente','DNI','Edad','Especialidad','Cirugía','Médico','TM','Dosis mGy','DAP','T.Rad','H.Ini','H.Fin','Equipo']],
+    head:[['N°G','N°M','Fecha','Paciente','DNI','Edad','Especialidad','Cirugía','Sala','Médico','TM','Dosis mGy','DAP','T.Rad','H.Ini','H.Fin','Equipo']],
     body:data.map(s=>[
       s.numGeneral||'—',s.numMensual||'—',formatDate(s.fecha),s.paciente||'',s.dni||'',s.edad||'—',
-      s.especialidad||'—',s.cirugia||'',s.medico||'—',s.tecnologo||'—',
+      s.especialidad||'—',s.cirugia||'',s.sala||'—',s.medico||'—',s.tecnologo||'—',
       s.dosisMGy!=null?String(s.dosisMGy):'—',s.dap!=null?String(s.dap):'—',
       s.tiempoRad||'—',s.horaIni||'—',s.horaFin||'—',s.equipo||'—'
     ]),
@@ -982,7 +1025,7 @@ async function exportOneSurgeryPDF(id){
     body:[
       ['N° General',s.numGeneral||'—'],['N° Mensual',s.numMensual||'—'],
       ['Paciente',s.paciente||''],['DNI',s.dni||''],['Edad',s.edad?s.edad+' años':'—'],
-      ['Especialidad',s.especialidad||'—'],['Cirugía',s.cirugia||''],
+      ['Especialidad',s.especialidad||'—'],['Cirugía',s.cirugia||''],['Sala',s.sala||'—'],
       ['Médico',s.medico||'—'],['Tecnólogo Médico',s.tecnologo||'—'],
       ['Dosis (mGy)',s.dosisMGy!=null?String(s.dosisMGy):'—'],['DAP (Gy·cm²)',s.dap!=null?String(s.dap):'—'],
       ['Tiempo Radiación',s.tiempoRad||'—'],['Hora Inicio',s.horaIni||'—'],['Hora Final',s.horaFin||'—'],
