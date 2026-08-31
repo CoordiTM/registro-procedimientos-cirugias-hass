@@ -279,13 +279,13 @@ document.dispatchEvent(new Event("firebaseReady"));
       <div class="table-wrapper">
         <div class="table-header">
           <div style="font-weight:700;color:var(--text);font-size:14px" id="surgeryTableTitle">Lista de Cirugías — SOP</div>
-          <input class="search-input" type="text" placeholder="&#x1F50D; Buscar paciente, médico..." oninput="filterSurgeries(this.value)"/>
+          <input class="search-input" type="text" placeholder="&#x1F50D; Buscar paciente, DNI, médico..." oninput="filterSurgeries(this.value)"/>
         </div>
         <div style="overflow-x:auto">
           <table>
             <thead>
               <tr>
-                <th>N&#xB0;G</th><th>N&#xB0;M</th><th>Fecha</th><th>Paciente</th><th>Edad</th>
+                <th>N&#xB0;G</th><th>N&#xB0;M</th><th>Fecha</th><th>Paciente</th><th>DNI</th><th>Edad</th>
                 <th>Especialidad</th><th>Cirugía</th><th>Médico</th><th>TM</th>
                 <th>Dosis</th><th>DAP</th><th>T.Rad</th><th>H.Ini</th><th>H.Fin</th><th>Equipo</th>
                 <th>Acciones</th>
@@ -385,8 +385,9 @@ document.dispatchEvent(new Event("firebaseReady"));
         <div class="field-group"><label>Fecha *</label><input type="date" id="sFecha"/></div>
         <div class="field-group"><label>N&#xB0; General (auto)</label><input type="text" id="sNumGeneral" readonly style="background:var(--bg3);color:var(--text3)"/></div>
       </div>
-      <div class="form-row single">
+      <div class="form-row">
         <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="sPaciente" placeholder="Apellido, Nombre"/></div>
+        <div class="field-group"><label>DNI *</label><input type="text" id="sDni" placeholder="Número de DNI"/></div>
       </div>
       <div class="form-row four">
         <div class="field-group"><label>Edad *</label><input type="number" id="sEdad" placeholder="Años"/></div>
@@ -766,7 +767,7 @@ function renderSurgeries(list) {
 
   const body = document.getElementById("surgeriesBody");
   if (!data.length) {
-    body.innerHTML = '<tr><td colspan="16"><div class="empty-state"><div class="empty-icon">&#x1F3E5;</div><div class="empty-title">Sin cirugías registradas en esta sala</div></div></td></tr>';
+    body.innerHTML = '<tr><td colspan="17"><div class="empty-state"><div class="empty-icon">&#x1F3E5;</div><div class="empty-title">Sin cirugías registradas en esta sala</div></div></td></tr>';
     return;
   }
   let html = "";
@@ -776,6 +777,7 @@ function renderSurgeries(list) {
     html += '<td style="color:var(--text4);font-size:11px">' + (s.numMensual || "&#x2014;") + '</td>';
     html += '<td>' + formatDate(s.fecha) + '</td>';
     html += '<td style="font-weight:600;color:var(--text)">' + esc(s.paciente) + '</td>';
+    html += '<td>' + esc(s.dni || "&#x2014;") + '</td>';
     html += '<td>' + (s.edad || "&#x2014;") + '</td>';
     html += '<td>' + esc(s.especialidad || "&#x2014;") + '</td>';
     html += '<td>' + esc(s.cirugia) + '</td>';
@@ -802,6 +804,7 @@ function filterSurgeries(v) {
   if (!lv) { renderSurgeries(base); return; }
   const filtered = base.filter(s =>
     (s.paciente || "").toLowerCase().includes(lv) ||
+    (s.dni || "").toLowerCase().includes(lv) ||
     (s.medico || "").toLowerCase().includes(lv) ||
     (s.cirugia || "").toLowerCase().includes(lv)
   );
@@ -862,7 +865,7 @@ function openSurgeryModal() {
   document.getElementById("surgeryModalTitle").textContent = "Nueva Cirugía";
   document.getElementById("sFecha").value = new Date().toISOString().split("T")[0];
   document.getElementById("sNumGeneral").value = "(Automático)";
-  const ids = ["sPaciente", "sEdad", "sCirugia", "sMedico", "sDosis", "sDap", "sTiempoRad", "sHoraIni", "sHoraFin"];
+  const ids = ["sPaciente", "sDni", "sEdad", "sCirugia", "sMedico", "sDosis", "sDap", "sTiempoRad", "sHoraIni", "sHoraFin"];
   for (const id of ids) document.getElementById(id).value = "";
   const sels = ["sEspecialidad", "sTecnologo", "sEquipo", "sSala"];
   for (const id of sels) document.getElementById(id).value = "";
@@ -878,6 +881,7 @@ function editSurgery(id) {
   document.getElementById("sFecha").value = s.fecha || "";
   document.getElementById("sNumGeneral").value = s.numGeneral || "";
   document.getElementById("sPaciente").value = s.paciente || "";
+  document.getElementById("sDni").value = s.dni || "";
   document.getElementById("sEdad").value = s.edad || "";
   document.getElementById("sEspecialidad").value = s.especialidad || "";
   document.getElementById("sCirugia").value = s.cirugia || "";
@@ -897,7 +901,7 @@ function editSurgery(id) {
 async function saveSurgery() {
   const fechaVal = document.getElementById("sFecha").value;
   const paciente = document.getElementById("sPaciente").value.trim();
-
+  const dni = document.getElementById("sDni").value.trim();
   const edad = document.getElementById("sEdad").value;
   const especialidad = document.getElementById("sEspecialidad").value;
   const cirugia = document.getElementById("sCirugia").value.trim();
@@ -911,7 +915,7 @@ async function saveSurgery() {
   const horaFin = document.getElementById("sHoraFin").value;
   const equipo = document.getElementById("sEquipo").value;
 
-  if (!fechaVal || !paciente || !edad || !especialidad || !cirugia || !sala || !medico || !tecnologo || !dosis || !dap || !tiempoRad || !horaIni || !horaFin || !equipo) {
+  if (!fechaVal || !paciente || !dni || !edad || !especialidad || !cirugia || !sala || !medico || !tecnologo || !dosis || !dap || !tiempoRad || !horaIni || !horaFin || !equipo) {
     showAlert("surgeryAlert", "Todos los campos son obligatorios (*).");
     return;
   }
@@ -941,7 +945,7 @@ async function saveSurgery() {
     }
 
     const data = {
-      fecha: fechaVal, paciente, edad: parseInt(edad), especialidad, cirugia, sala, medico, tecnologo,
+      fecha: fechaVal, paciente, dni, edad: parseInt(edad), especialidad, cirugia, sala, medico, tecnologo,
       dosisMGy: parseFloat(dosis), dap: parseFloat(dap), tiempoRad, horaIni, horaFin, equipo,
       numGeneral, numMensual,
       updatedAt: new Date().toISOString()
@@ -1118,7 +1122,7 @@ function doExportPDF() {
   for (const s of data) {
     bodyData.push([
       s.numGeneral || "&#x2014;", s.numMensual || "&#x2014;", formatDate(s.fecha),
-      s.paciente || "", s.edad || "&#x2014;",
+      s.paciente || "", s.dni || "", s.edad || "&#x2014;",
       s.especialidad || "&#x2014;", s.cirugia || "",
       s.medico || "&#x2014;", s.tecnologo || "&#x2014;",
       s.dosisMGy != null ? String(s.dosisMGy) : "&#x2014;",
@@ -1129,7 +1133,7 @@ function doExportPDF() {
 
   doc.autoTable({
     startY: 54,
-    head: [["N°G", "N°M", "Fecha", "Paciente", "Edad", "Especialidad", "Cirugía", "Médico", "TM", "Dosis mGy", "DAP", "T.Rad", "H.Ini", "H.Fin", "Equipo"]],
+    head: [["N°G", "N°M", "Fecha", "Paciente", "DNI", "Edad", "Especialidad", "Cirugía", "Médico", "TM", "Dosis mGy", "DAP", "T.Rad", "H.Ini", "H.Fin", "Equipo"]],
     body: bodyData,
     theme: "grid",
     headStyles: { fillColor: [26, 86, 219], textColor: 255, fontStyle: "bold", fontSize: 6 },
@@ -1158,7 +1162,7 @@ async function exportOneSurgeryPDF(id) {
     ["N° General", s.numGeneral || "&#x2014;"],
     ["N° Mensual", s.numMensual || "&#x2014;"],
     ["Paciente", s.paciente || ""],
-
+    ["DNI", s.dni || ""],
     ["Edad", s.edad ? s.edad + " años" : "&#x2014;"],
     ["Especialidad", s.especialidad || "&#x2014;"],
     ["Cirugía", s.cirugia || ""],
