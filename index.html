@@ -624,12 +624,16 @@ async function loadConfig() {
 
 async function loadSurgeries() {
   try {
+    console.log("[LOAD] Cargando cirugías desde colección:", FB.COL_SURGERY);
     const { db, collection, getDocs, COL_SURGERY } = FB;
     const snap = await getDocs(collection(db, COL_SURGERY));
     _allSurgeries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    console.log("[LOAD] Cirugías cargadas:", _allSurgeries.length);
     renderSurgeries();
     updateCounts();
-  } catch (e) { console.error(e); }
+  } catch (e) { 
+    console.error("[LOAD] ERROR cargando cirugías:", e);
+  }
 }
 
 async function loadUsers() {
