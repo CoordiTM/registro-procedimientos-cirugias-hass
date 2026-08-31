@@ -345,27 +345,23 @@ document.dispatchEvent(new Event("firebaseReady"));
     <!-- CONFIGURACIÓN -->
     <div id="tab-config" class="tab-pane">
       <div class="page-header"><div><div class="page-title">Configuración del Sistema</div><div class="page-subtitle">Ajustes de numeración y parámetros</div></div></div>
-      <div class="config-box">
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:8px">Último Número General Asignado</div>
-        <div class="config-value" id="cfgLastGeneral">&#x2014;</div>
-        <div style="font-size:13px;color:var(--text3);margin-top:8px;line-height:1.5">El siguiente registro usará el número siguiente a este.</div>
-        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <input type="number" id="cfgNewLastGeneral" placeholder="Ej: 150" style="max-width:200px;margin-bottom:0"/>
-          <button class="btn btn-primary btn-sm" onclick="updateLastGeneral()">Actualizar número</button>
-        </div>
+            <div class="config-box">
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:8px">Numeraci&#xF3;n por Sala</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:8px;line-height:1.5">Cada sala tiene su propio contador general y mensual independiente.</div>
+        <div id="salaCountersList" style="margin-top:12px"></div>
       </div>
+
       <div class="catalog-section">
         <div style="font-size:13px;color:var(--text2);font-weight:600;line-height:1.6">
-          <p style="margin-bottom:8px"><strong>Reglas de numeración:</strong></p>
+          <p style="margin-bottom:8px"><strong>Reglas de numeraci&#xF3;n por sala:</strong></p>
           <ul style="padding-left:18px;color:var(--text3)">
-            <li>El <strong>Número General</strong> es correlativo indefinido y se incrementa automáticamente.</li>
-            <li>El <strong>Número Mensual</strong> se reinicia automáticamente el día 1 de cada mes.</li>
-            <li>Si migras desde registro físico, actualiza el número general al último usado en papel.</li>
+            <li>Cada sala (SOP, URVI 1, SALA 3 ESPECIALES) tiene su <strong>propia numeraci&#xF3;n general</strong> correlativa.</li>
+            <li>Cada sala tiene su <strong>propia numeraci&#xF3;n mensual</strong> que se reinicia el d&#xED;a 1 de cada mes.</li>
+            <li>El N&#xB0; General de SOP es independiente del N&#xB0; General de URVI 1, etc.</li>
+            <li>Si migras desde registro f&#xED;sico, actualiza cada contador por sala.</li>
           </ul>
         </div>
       </div>
-    </div>
-  </div>
 </div>
 
 <!-- MODALS -->
@@ -381,17 +377,20 @@ document.dispatchEvent(new Event("firebaseReady"));
       <div id="surgeryAlert" class="alert alert-error"></div>
       <div class="form-row">
         <div class="field-group"><label>Fecha *</label><input type="date" id="sFecha"/></div>
-        <div class="field-group"><label>N&#xB0; General (auto)</label><input type="text" id="sNumGeneral" readonly style="background:var(--bg3);color:var(--text3)"/></div>
+        <div class="field-group"><label>Sala *</label><select id="sSala"><option value="">&#x2014; Seleccionar &#x2014;</option></select></div>
       </div>
       <div class="form-row">
         <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="sPaciente" placeholder="Apellido, Nombre"/></div>
         <div class="field-group"><label>DNI *</label><input type="text" id="sDni" placeholder="Número de DNI"/></div>
       </div>
-      <div class="form-row four">
+      <div class="form-row" id="autoNumbersRow" style="display:none">
+        <div class="field-group"><label>N&#xB0; General (sala)</label><input type="text" id="sNumGeneral" readonly style="background:var(--bg3);color:var(--text3)"/></div>
+        <div class="field-group"><label>N&#xB0; Mensual (sala)</label><input type="text" id="sNumMensual" readonly style="background:var(--bg3);color:var(--text3)"/></div>
+      </div>
+      <div class="form-row three">
         <div class="field-group"><label>Edad *</label><input type="number" id="sEdad" placeholder="Años"/></div>
         <div class="field-group"><label>Especialidad *</label><select id="sEspecialidad"><option value="">&#x2014; Seleccionar &#x2014;</option></select></div>
         <div class="field-group"><label>Cirugía *</label><input type="text" id="sCirugia" placeholder="Tipo de cirugía"/></div>
-        <div class="field-group"><label>Sala *</label><select id="sSala"><option value="">&#x2014; Seleccionar &#x2014;</option></select></div>
       </div>
       <div class="form-row">
         <div class="field-group"><label>Médico *</label><input type="text" id="sMedico" placeholder="Nombre del médico cirujano"/></div>
@@ -485,7 +484,6 @@ let _tecnologos = [];
 let _especialidades = [];
 let _equipos = [];
 let _salas = [];
-let _lastGeneralNumber = 0;
 let _currentSala = "SOP";
 
 document.addEventListener("firebaseReady", async () => {
@@ -627,11 +625,7 @@ async function loadAll() {
 
 async function loadConfig() {
   try {
-    const { db, doc, getDoc, COL_CONFIG } = FB;
-    const snap = await getDoc(doc(db, COL_CONFIG, "counters"));
-    if (snap.exists()) { _lastGeneralNumber = snap.data().lastGeneralNumber || 0; }
-    const el = document.getElementById("cfgLastGeneral");
-    if (el) el.textContent = _lastGeneralNumber;
+    renderSalaCounters();
   } catch (e) { console.error(e); }
 }
 
@@ -706,15 +700,35 @@ function fillSelect(id, arr, ph) {
 }
 
 async function updateLastGeneral() {
-  const val = parseInt(document.getElementById("cfgNewLastGeneral").value);
-  if (isNaN(val) || val < 0) { toast("Ingresa un número válido.", "error"); return; }
+  toast("Use el catálogo de salas para gestionar los contadores.", "info");
+}
+
+async function renderSalaCounters() {
+  const container = document.getElementById("salaCountersList");
+  if (!container) return;
+  const { db, doc, getDoc, COL_CONFIG } = FB;
+  let html = "";
+  for (const sala of _salas) {
+    const configRef = doc(db, COL_CONFIG, "sala_" + sala.nombre.replace(/\s+/g, "_"));
+    const snap = await getDoc(configRef);
+    const lastNum = snap.exists() ? (snap.data().lastGeneralNumber || 0) : 0;
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px">';
+    html += '<div><div style="font-weight:600;color:var(--text)">' + esc(sala.nombre) + '</div>';
+    html += '<div style="font-size:12px;color:var(--text3)">Último N° General: <strong>' + lastNum + '</strong></div></div>';
+    html += '<input type="number" id="cfg_' + sala.id + '" placeholder="Nuevo" style="width:100px;margin-bottom:0" onchange="updateSalaCounter('' + esc(sala.nombre) + '',this.value)"/>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+async function updateSalaCounter(sala, val) {
+  const num = parseInt(val);
+  if (isNaN(num) || num < 0) { toast("Ingresa un número válido.", "error"); return; }
   try {
-    const { db, doc, updateDoc, COL_CONFIG } = FB;
-    await updateDoc(doc(db, COL_CONFIG, "counters"), { lastGeneralNumber: val });
-    _lastGeneralNumber = val;
-    document.getElementById("cfgLastGeneral").textContent = val;
-    document.getElementById("cfgNewLastGeneral").value = "";
-    toast("Número general actualizado.", "success");
+    const { db, doc, setDoc, COL_CONFIG } = FB;
+    await setDoc(doc(db, COL_CONFIG, "sala_" + sala.replace(/\s+/g, "_")), { lastGeneralNumber: num }, { merge: true });
+    toast("Contador actualizado para " + sala, "success");
+    renderSalaCounters();
   } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
@@ -858,7 +872,7 @@ function filterUsersRender(v) {
   renderUsers(filtered);
 }
 
-async function getNextNumbers(fecha) {
+async function getNextNumbers(fecha, sala) {
   const { db, doc, getDoc, COL_CONFIG } = FB;
   const cfgSnap = await getDoc(doc(db, COL_CONFIG, "counters"));
   let lastGen = cfgSnap.exists() ? (cfgSnap.data().lastGeneralNumber || 0) : 0;
@@ -866,14 +880,24 @@ async function getNextNumbers(fecha) {
 
   const y = fecha.getFullYear();
   const m = fecha.getMonth();
+
+  // Número mensual POR SALA (reinicia cada 1° del mes)
   const monthCount = _allSurgeries.filter(s => {
-    if (!s.fecha) return false;
+    if (!s.fecha || s.sala !== sala) return false;
     const d = new Date(s.fecha + "T00:00:00");
     return d.getFullYear() === y && d.getMonth() === m;
   }).length;
   const nextMensual = monthCount + 1;
 
-  return { nextGeneral, nextMensual, lastGen };
+  // Número anual POR SALA (reinicia cada 1° de enero)
+  const yearCount = _allSurgeries.filter(s => {
+    if (!s.fecha || s.sala !== sala) return false;
+    const d = new Date(s.fecha + "T00:00:00");
+    return d.getFullYear() === y;
+  }).length;
+  const nextAnual = yearCount + 1;
+
+  return { nextGeneral, nextMensual, nextAnual, lastGen };
 }
 
 function openSurgeryModal() {
@@ -881,6 +905,7 @@ function openSurgeryModal() {
   document.getElementById("surgeryModalTitle").textContent = "Nueva Cirugía";
   document.getElementById("sFecha").value = new Date().toISOString().split("T")[0];
   document.getElementById("sNumGeneral").value = "(Automático)";
+  document.getElementById("sNumMensual").value = "(Automático)";
   const ids = ["sPaciente", "sDni", "sEdad", "sCirugia", "sMedico", "sDosis", "sDap", "sTiempoRad", "sHoraIni", "sHoraFin"];
   for (const id of ids) document.getElementById(id).value = "";
   const sels = ["sEspecialidad", "sTecnologo", "sEquipo", "sSala"];
@@ -946,14 +971,12 @@ async function saveSurgery() {
 
     if (!editingSurgeryId) {
       const fechaObj = new Date(fechaVal + "T00:00:00");
-      const nums = await getNextNumbers(fechaObj);
+      const nums = await getNextNumbers(fechaObj, sala);
       numGeneral = nums.nextGeneral;
       numMensual = nums.nextMensual;
       await updateDoc(doc(db, COL_CONFIG, "counters"), { lastGeneralNumber: nums.lastGen + 1 });
-      _lastGeneralNumber = nums.lastGen + 1;
-      if (currentUser?.rol === "admin") {
-        document.getElementById("cfgLastGeneral").textContent = _lastGeneralNumber;
-      }
+      
+      
     } else {
       const existing = _allSurgeries.find(x => x.id === editingSurgeryId);
       numGeneral = existing?.numGeneral;
@@ -1175,8 +1198,8 @@ async function exportOneSurgeryPDF(id) {
   doc.text("Ficha de Cirugía", 14, 40);
 
   const tableBody = [
-    ["N° General", s.numGeneral || "&#x2014;"],
-    ["N° Mensual", s.numMensual || "&#x2014;"],
+    ["N° General (sala)", s.numGeneral || "&#x2014;"],
+    ["N° Mensual (sala)", s.numMensual || "&#x2014;"],
     ["Paciente", s.paciente || ""],
     ["DNI", s.dni || ""],
     ["Edad", s.edad ? s.edad + " años" : "&#x2014;"],
