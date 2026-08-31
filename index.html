@@ -706,19 +706,36 @@ async function updateLastGeneral() {
 async function renderSalaCounters() {
   const container = document.getElementById("salaCountersList");
   if (!container) return;
+  container.innerHTML = "";
   const { db, doc, getDoc, COL_CONFIG } = FB;
-  let html = "";
   for (const sala of _salas) {
     const configRef = doc(db, COL_CONFIG, "sala_" + sala.nombre.replace(/\s+/g, "_"));
     const snap = await getDoc(configRef);
     const lastNum = snap.exists() ? (snap.data().lastGeneralNumber || 0) : 0;
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px">';
-    html += '<div><div style="font-weight:600;color:var(--text)">' + esc(sala.nombre) + '</div>';
-    html += '<div style="font-size:12px;color:var(--text3)">Último N° General: <strong>' + lastNum + '</strong></div></div>';
-    html += '<input type="number" id="cfg_' + sala.id + '" placeholder="Nuevo" style="width:100px;margin-bottom:0" onchange="updateSalaCounter('' + esc(sala.nombre) + '',this.value)"/>';
-    html += '</div>';
+
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px";
+
+    const info = document.createElement("div");
+    const name = document.createElement("div");
+    name.style.cssText = "font-weight:600;color:var(--text)";
+    name.textContent = sala.nombre;
+    const num = document.createElement("div");
+    num.style.cssText = "font-size:12px;color:var(--text3)";
+    num.innerHTML = "Último N° General: <strong>" + lastNum + "</strong>";
+    info.appendChild(name);
+    info.appendChild(num);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.placeholder = "Nuevo";
+    input.style.cssText = "width:100px;margin-bottom:0";
+    input.onchange = function() { updateSalaCounter(sala.nombre, this.value); };
+
+    row.appendChild(info);
+    row.appendChild(input);
+    container.appendChild(row);
   }
-  container.innerHTML = html;
 }
 
 async function updateSalaCounter(sala, val) {
