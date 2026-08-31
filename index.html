@@ -269,11 +269,9 @@ document.dispatchEvent(new Event("firebaseReady"));
         </div>
       </div>
 
-      <!-- SUB-PESTAÑAS DE SALAS -->
-      <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:4px 16px;margin-bottom:20px;display:flex;gap:4px;overflow-x:auto">
-        <button class="sub-tab active" onclick="switchSalaTab('SOP',this)" data-sala="SOP" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2.5px solid var(--accent);color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">SOP <span id="cntSOP" class="tab-count">0</span></button>
-        <button class="sub-tab" onclick="switchSalaTab('URVI 1',this)" data-sala="URVI 1" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2.5px solid transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">URVI 1 <span id="cntURVI1" class="tab-count">0</span></button>
-        <button class="sub-tab" onclick="switchSalaTab('SALA 3 ESPECIALES',this)" data-sala="SALA 3 ESPECIALES" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2.5px solid transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">SALA 3 ESPECIALES <span id="cntSALA3" class="tab-count">0</span></button>
+      <!-- SUB-PESTAÑAS DE SALAS (generadas dinámicamente) -->
+      <div id="salaTabsContainer" style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:4px 16px;margin-bottom:20px;display:flex;gap:4px;overflow-x:auto">
+        <!-- Las pestañas se generan desde JS según el catálogo de Firebase -->
       </div>
 
       <div class="table-wrapper">
@@ -555,20 +553,29 @@ function switchTab(name, el) {
   document.getElementById("tab-" + name).classList.add("active");
 }
 
+function renderSalaTabs() {
+  const container = document.getElementById("salaTabsContainer");
+  if (!container) return;
+  if (!_salas.length) {
+    container.innerHTML = '<div style="padding:10px;color:var(--text3);font-size:13px">No hay salas configuradas. Contacte al administrador.</div>';
+    return;
+  }
+  let html = "";
+  for (let i = 0; i < _salas.length; i++) {
+    const s = _salas[i];
+    const isActive = s.nombre === _currentSala;
+    const count = _allSurgeries.filter(x => x.sala === s.nombre).length;
+    html += '<button class="sub-tab' + (isActive ? ' active' : '') + '" onclick="switchSalaTab('' + esc(s.nombre) + '',this)" ';
+    html += 'style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;border-bottom:2.5px solid ' + (isActive ? 'var(--accent)' : 'transparent') + ';color:' + (isActive ? 'var(--accent)' : 'var(--text3)') + ';cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">';
+    html += esc(s.nombre) + ' <span class="tab-count">' + count + '</span></button>';
+  }
+  container.innerHTML = html;
+}
+
 function switchSalaTab(sala, el) {
   _currentSala = sala;
-  document.querySelectorAll(".sub-tab").forEach(t => {
-    t.style.borderBottomColor = "transparent";
-    t.style.color = "var(--text3)";
-    t.classList.remove("active");
-  });
-  el.style.borderBottomColor = "var(--accent)";
-  el.style.color = "var(--accent)";
-  el.classList.add("active");
-
-  const titles = { "SOP": "Lista de Cirugías — SOP", "URVI 1": "Lista de Cirugías — URVI 1", "SALA 3 ESPECIALES": "Lista de Cirugías — SALA 3 ESPECIALES" };
-  document.getElementById("surgeryTableTitle").textContent = titles[sala] || "Lista de Cirugías";
-
+  renderSalaTabs();
+  document.getElementById("surgeryTableTitle").textContent = "Lista de Cirugías — " + sala;
   renderSurgeries();
 }
 
@@ -629,6 +636,8 @@ async function loadSurgeries() {
     const snap = await getDocs(collection(db, COL_SURGERY));
     _allSurgeries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     console.log("[LOAD] Cirugías cargadas:", _allSurgeries.length);
+    if (!_currentSala && _salas.length) _currentSala = _salas[0].nombre;
+    renderSalaTabs();
     renderSurgeries();
     updateCounts();
   } catch (e) { 
@@ -661,6 +670,7 @@ async function loadCatalogs() {
     _equipos = sq.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nombre.localeCompare(b.nombre));
     _salas = ss.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nombre.localeCompare(b.nombre));
     populateSelects();
+    renderSalaTabs();
     if (currentUser?.rol === "admin") {
       renderCatalogList("tecnologos");
       renderCatalogList("especialidades");
@@ -749,9 +759,7 @@ function renderCatalogList(colKey) {
 function updateCounts() {
   document.getElementById("cntSurgeries").textContent = _allSurgeries.length;
   document.getElementById("cntUsers").textContent = _allUsers.length;
-  document.getElementById("cntSOP").textContent = _allSurgeries.filter(s => s.sala === "SOP").length;
-  document.getElementById("cntURVI1").textContent = _allSurgeries.filter(s => s.sala === "URVI 1").length;
-  document.getElementById("cntSALA3").textContent = _allSurgeries.filter(s => s.sala === "SALA 3 ESPECIALES").length;
+  renderSalaTabs();
 }
 
 
@@ -764,10 +772,8 @@ function renderSurgeries(list) {
   }
   data = data.sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
 
-  // Actualizar contadores de salas
-  document.getElementById("cntSOP").textContent = _allSurgeries.filter(s => s.sala === "SOP").length;
-  document.getElementById("cntURVI1").textContent = _allSurgeries.filter(s => s.sala === "URVI 1").length;
-  document.getElementById("cntSALA3").textContent = _allSurgeries.filter(s => s.sala === "SALA 3 ESPECIALES").length;
+  // Actualizar contadores de salas en las pestañas
+  renderSalaTabs();
 
   const body = document.getElementById("surgeriesBody");
   if (!data.length) {
